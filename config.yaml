@@ -3,27 +3,27 @@
 fmg_addr: '10.0.10.234'         #format: 'myfmg01' or '192.168.1.100' <IP or hostname>
 fmg_uname: "webadmin"
 adom_name: '6_0'                #format '6_0' <Name of your ADOM in FMG>
-fgt_name: 'FGVM01TM21002021'    #format: 'FGVM01TM21002021' <FortiGate cluster name in FMG ADOM>
+fgt_name: 'FGVM01TM21002021'    #format: 'fgtcluster01' <FortiGate cluster name in FMG ADOM>
 verbosity_level: 0              #format: 0 or 1
 
 #interop config
 localas: 65002                                #format: 65002
 routerid: '192.168.1.4'                       #format: '192.168.1.4'
 vdom: 'public'                                #format: 'public' <FortiGate's VDOM name>
-hamonports: 'port1 port3'                   #format: 'port1 port3'
-pingservermon: 'vlan10 vlan20'  #format 'vlan10 vlan20'
+hamonports: 'port1 port3'                     #format: 'port1 port3'
+pingservermon: 'vlan10 vlan20'                #format 'vlan10 vlan20'
 interfaces:
   -
-    port: 'port1'        #format: 'port1'
-    vlan: 'vlan10' #format: 'vlan10'
-    vlanid: 10           #format: 10
+    port: 'port1'         #format: 'port1'
+    vlan: 'vlan10'        #format: 'vlan10'
+    vlanid: 10            #format: 10
     subnet: '192.168.1.'  #format: '192.168.1.'
     fgtip: '4/29'         #format: '4/29'
     n1ip: 2               #format: 2
     n2ip: 3               #format: 3
     linkmonip: 1          #format: 1
     remoteas: 65001       #format: 65001
-    passwd: 'password'      #format: 'password'
+    passwd: 'password'    #format: 'password'
   -
     port: 'port3'
     vlan: 'vlan20'
