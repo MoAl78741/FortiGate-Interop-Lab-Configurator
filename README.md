@@ -9,6 +9,6 @@ What the app does:
 - Reads in config.yaml and passes to Jinja2 templating engine
 - Converts specific YAML arguments into specified template code 
 - Uses FortiManager API to backup the target FortiGate firewall
-- Uploads the generated commands to the speicified FortiManager ADOM as a CLI script
+- Uploads the generated commands to the specified FortiManager ADOM as a CLI script
 
 
