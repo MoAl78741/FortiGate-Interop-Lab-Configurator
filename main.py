@@ -39,10 +39,10 @@ def main():
     cfg = yaml_values(config_file)
     if not cfg:
         raise YAMLException(f"Unable to parse {config_file}")
+    log_msg.debug(f"Successfully processed {config_file}")
 
     rendered_cmds = cg.gen_template(cfg)
     fo.process(rendered_cmds, **cfg)
-    log_msg.debug(f"Successfully processed {config_file}")
 
 
 if __name__ == "__main__":
