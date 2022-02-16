@@ -1,0 +1,30 @@
+{#
+Base template: Removes configuration in order of dependency
+#}
+
+config global
+config sys ha
+unset monitor
+unset pingserver-monitor
+end
+
+end
+
+config vdom
+edit untrust
+config sys link-monitor
+purge
+y
+end
+config router bgp
+config neighbors
+purge
+y
+end
+end
+
+end
+
+{% block interop_cmds %}
+
+{% endblock %}

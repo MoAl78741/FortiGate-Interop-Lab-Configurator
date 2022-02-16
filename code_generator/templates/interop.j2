@@ -1,0 +1,113 @@
+{#
+Interop template: Generates configuration for interop lab in order of dependency
+#}
+
+{% extends 'base.j2' %}
+
+{% block interop_cmds %}
+
+
+config vdom
+edit {{ yvars.vdom }}
+    config firewall policy
+        edit 999
+            set name "any"
+            set srcintf "any"
+            set dstintf "any"
+            set srcaddr "all"
+            set dstaddr "all"
+            set action accept
+            set schedule "always"
+            set service "ALL"
+            set logtraffic all
+            set logtraffic-start enable
+        next
+    end
+    config router bgp
+      set as {{ yvars.localas }}
+      set router-id {{ yvars.routerid }}
+      set keepalive-timer 4
+      set holdtime-timer 12
+      set fast-external-failover disable
+      set scan-time 0
+      set graceful-restart enable
+          config redistribute connected
+            set status enable
+          end
+    end
+end
+
+
+{% for int in yvars.interfaces %}
+
+config global
+    config system interface
+        edit {{ int.port }}
+            set vdom root
+            unset ip
+            unset description
+            set role undefined
+            set mtu-override enable
+            set mtu 9216
+            set device-identification disable
+    end
+
+config system interface
+    edit {{ int.vlan }}
+        set vdom {{ yvars.vdom }}
+        set ip {{ int.subnet }}{{ int.fgtip }}
+        set interface {{ int.port }}
+        set vlanid {{ int.vlanid }}
+        set role undefined
+        set mtu-override enable
+        set mtu 9216
+        set device-identification disable
+    end
+end
+
+config vdom
+edit {{ yvars.vdom }}
+
+config router bgp
+    config neighbor
+        edit {{ int.subnet }}{{ int.n1ip }}
+            set interface {{ int.vlan }}
+            set update-source {{ int.vlan }}
+            set remote-as {{ int.remoteas }}
+            set password {{ int.passwd }}
+            set advertisement-interval 1
+            set capability-graceful-restart enable
+            set next-hop-self enable
+        next
+        edit {{ int.subnet }}{{ int.n2ip }}
+            set interface {{ int.vlan }}
+            set update-source {{ int.vlan }}
+            set remote-as {{ int.remoteas }}
+            set password {{ int.passwd }}
+            set advertisement-interval 1
+            set capability-graceful-restart enable
+            set next-hop-self enable
+      next
+    end
+end
+
+config system link-monitor
+    edit '{{ int.subnet }}{{ int.linkmonip }}'
+        set srcintf {{ int.vlan }}
+        set server {{ int.subnet }}{{ int.linkmonip }}
+        set update-cascade-interface disable
+        set update-static-route disable
+    end
+end
+
+{% endfor %}
+
+
+config global
+    config sys ha
+        set monitor {{ yvars.hamonports }}
+        set pingserver-monitor-interface {{ yvars.pingservermon }}
+    end
+end
+
+{% endblock %}
