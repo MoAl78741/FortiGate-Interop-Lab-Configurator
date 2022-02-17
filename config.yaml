@@ -2,8 +2,8 @@
 ---
 fmg_addr: '10.0.10.234'         #format: 'myfmg01' or '192.168.1.100' <IP or hostname>
 fmg_uname: "webadmin"
-adom_name: '6_0'                #format '6_0' <Name of your ADOM in FMG>
-fgt_name: 'FGVM01TM21002021'    #format: 'fgtcluster01' <FortiGate cluster name in FMG ADOM>
+adom_name: 'PUBLIC_ADOMNAME'    #format 'PUBLIC_ADOMNAME' <Name of your ADOM in FMG>
+fgt_name: 'fgtcluster1'         #format: 'fgtcluster01' <FortiGate cluster name in FMG ADOM>
 verbosity_level: 0              #format: 0 or 1
 
 #interop config
