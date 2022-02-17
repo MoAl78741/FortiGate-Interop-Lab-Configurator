@@ -25,6 +25,13 @@ class ScriptException(Exception):
     pass
 
 
+class FGTinADOMException(Exception):
+    pass
+
+def  raise_exception(exception, error):
+    log_msg.error(error)
+    raise exception(error)
+
 def toggle_lock(f):
     """
     Decorator that locks an ADOM before performing the requested
@@ -39,25 +46,18 @@ def toggle_lock(f):
         adom = kwargs["adom_name"]
         code, res = lock_adom(fmg=fmg, adom_name=adom)
         if code != 0:
-            error = "Unable to lock ADOM"
-            log_msg.error(error)
-            raise LockException(error)
+            raise_exception(LockException, "Unable to lock ADOM")
         log_msg.debug(f" {code} {res} : Successfully locked ADOM {adom}")
         results = f(*args, **kwargs)
         code, res = commit_adom(fmg=fmg, adom_name=adom)
         if code != 0:
-            error = "Unable to commit ADOM"
-            log_msg.error(error)
-            raise CommitException(error)
+            raise_exception(CommitException, "Unable to commit ADOM")
         log_msg.debug(f" {code} {res} : Successfully committed changes to ADOM {adom}")
         code, res = unlock_adom(fmg=fmg, adom_name=adom)
         if code != 0:
-            error = "Unable to unlock ADOM"
-            log_msg.error(error)
-            raise LockException(error)
+            raise_exception(LockException, "Unable to unlock ADOM")
         log_msg.debug(f" {code} {res} : Successfully unlocked ADOM {adom}")
         return results
-
     return _wrapper
 
 
@@ -94,20 +94,19 @@ def backup_config(fmg=None, adom_name=None, fgt_name=None):
     }
     code, res = fmg.execute(url_proxyjson, data=proxydata)
     if code == 0:
+        bresult = res[0].get('status', {}).get('code')
+        if bresult == -6:
+            raise_exception(FGTinADOMException, 'Problem calling sys/proxy/json against FGT in ADOM. Try refreshing connection from Dashboard > Connection Summary widget > Connectivity > refresh icon. ')
         with open(backup_name, "w") as bk:
             for line in res[0]["response"]:
                 bk.write(line)
     else:
-        error = f"ERROR: No results received before writing backup file {backup_name}"
-        log_msg.error(error)
-        raise BackupException(error)
-
+        raise_exception(BackupException, f"No results received before writing backup file {backup_name}")
     if path.exists(backup_name):
         log_msg.info(f"Successfully backed up config for {backup_name} ")
     else:
-        error = f"ERROR: Unable to backup file {backup_name}"
-        log_msg.error(error)
-        raise BackupException(error)
+        raise_exception(BackupException, f"Unable to backup file {backup_name}")
+
 
 
 @toggle_lock
@@ -123,12 +122,9 @@ def generate_script(fmg=None, adom_name=None, fgt_name=None, script_data=None):
         type="cli",
         target="remote_device",
     )
-    if res:
-        log_msg.info(f"Successfully created script in FMG {adom_name} named {script_name}")
-    else:
-        error = f"Script {script_name} failed during creation."
-        log_msg.error(error)
-        raise ScriptException(error)
+    if not res:
+        raise_exception(ScriptException, f"Script {script_name} failed during creation.")
+    log_msg.info(f"Successfully created script in FMG {adom_name} named {script_name}")
 
 
 def process(rcmds, **cfg):

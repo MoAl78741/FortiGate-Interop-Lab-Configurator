@@ -4,6 +4,7 @@ import logging
 
 log_msg = logging.getLogger(f"priLogger.{__name__}")
 
+
 class TemplateException(Exception):
     pass
 
@@ -13,9 +14,8 @@ def gen_template(cfg):
     env = Environment(loader=file_loader, trim_blocks=True)
     template = env.get_template("interop.j2")
     rendered_template = template.render(yvars=cfg)
-    if rendered_template:
-        log_msg.info("Template has been rendered successfully")
-        return rendered_template
-    else:
+    if not rendered_template:
         log_msg.error("Template was not rendered. Exiting..")
         raise TemplateException("ERROR: Template not rendered")
+    log_msg.info("Template has been rendered successfully")
+    return rendered_template
