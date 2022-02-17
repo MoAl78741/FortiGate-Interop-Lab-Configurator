@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 from jinja2 import Environment, FileSystemLoader
 import logging
 
