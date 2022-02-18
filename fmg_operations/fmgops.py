@@ -9,6 +9,7 @@ log_msg = logging.getLogger(f"priLogger.{__name__}")
 
 _now = datetime.now()
 
+
 class LockException(Exception):
     pass
 
@@ -28,9 +29,11 @@ class ScriptException(Exception):
 class FGTinADOMException(Exception):
     pass
 
-def  raise_exception(exception, error):
+
+def raise_exception(exception, error):
     log_msg.error(error)
     raise exception(error)
+
 
 def toggle_lock(f):
     """
@@ -40,7 +43,7 @@ def toggle_lock(f):
 
     def _wrapper(*args, **kwargs):
         """
-        Function to be applied on top of all deorated methods
+        Function to be applied on top of all decorated methods
         """
         fmg = kwargs["fmg"]
         adom = kwargs["adom_name"]
@@ -58,6 +61,7 @@ def toggle_lock(f):
             raise_exception(LockException, "Unable to unlock ADOM")
         log_msg.debug(f" {code} {res} : Successfully unlocked ADOM {adom}")
         return results
+
     return _wrapper
 
 
@@ -78,10 +82,10 @@ def commit_adom(fmg, adom_name):
 
 @toggle_lock
 def backup_config(fmg=None, adom_name=None, fgt_name=None):
-    '''
+    """
     Backs up standard config using sys/proxy/json call from FortiManager
     Config is placed into _backups/ directory.
-    '''
+    """
     backup_name = (
         f'_backups/Backup_{fgt_name}_{_now.strftime("%m-%d-%Y-%H-%M-%S")}.conf'
     )
@@ -93,27 +97,31 @@ def backup_config(fmg=None, adom_name=None, fgt_name=None):
         "target": [f"adom/{adom_name}/device/{fgt_name}"],
     }
     code, res = fmg.execute(url_proxyjson, data=proxydata)
-    if code == 0:
-        bresult = res[0].get('status', {}).get('code')
+    if code != 0:
+        raise_exception(
+            BackupException,
+            f"No results received before writing backup file {backup_name}",
+        )
+    else:
+        bresult = res[0].get("status", {}).get("code")
         if bresult == -6:
-            raise_exception(FGTinADOMException, 'Problem calling sys/proxy/json against FGT in ADOM. Try refreshing connection from Dashboard > Connection Summary widget > Connectivity > refresh icon. ')
+            raise_exception(
+                FGTinADOMException,
+                "Problem calling sys/proxy/json against FGT in ADOM. Try refreshing connection from Dashboard > Connection Summary widget > Connectivity > refresh icon. ",
+            )
         with open(backup_name, "w") as bk:
             for line in res[0]["response"]:
                 bk.write(line)
-    else:
-        raise_exception(BackupException, f"No results received before writing backup file {backup_name}")
-    if path.exists(backup_name):
-        log_msg.info(f"Successfully backed up config for {backup_name} ")
-    else:
+    if not path.exists(backup_name):
         raise_exception(BackupException, f"Unable to backup file {backup_name}")
-
+    log_msg.info(f"Successfully backed up config for {backup_name} ")
 
 
 @toggle_lock
 def generate_script(fmg=None, adom_name=None, fgt_name=None, script_data=None):
-    '''
+    """
     Uploads Jinja2 generated configuration text to specified ADOM as a CLI script.
-    '''
+    """
     script_name = f"_interop_{fgt_name}_{_now.strftime('%m-%d-%Y-%H-%M-%S')}"
     code, res = fmg.set(
         f"/dvmdb/adom/{adom_name}/script/",
@@ -123,14 +131,16 @@ def generate_script(fmg=None, adom_name=None, fgt_name=None, script_data=None):
         target="remote_device",
     )
     if not res:
-        raise_exception(ScriptException, f"Script {script_name} failed during creation.")
+        raise_exception(
+            ScriptException, f"Script {script_name} failed during creation."
+        )
     log_msg.info(f"Successfully created script in FMG {adom_name} named {script_name}")
 
 
 def process(rcmds, **cfg):
-    '''
+    """
     Connects to FortiManager API and executes backup + script upload.
-    '''
+    """
     with FortiManager(
         cfg["fmg_addr"],
         cfg["fmg_uname"],

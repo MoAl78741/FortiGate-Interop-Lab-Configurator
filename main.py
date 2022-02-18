@@ -21,7 +21,7 @@ class YAMLException(Exception):
     pass
 
 
-def yaml_values(config_file):
+def yaml_values(config_file) -> dict:
     """
     Open YAML and assign var cfg to file
     :param config_file: path of yaml file

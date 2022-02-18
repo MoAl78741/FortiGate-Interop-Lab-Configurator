@@ -11,7 +11,7 @@ class TemplateException(Exception):
 
 def gen_template(cfg):
     file_loader = FileSystemLoader("code_generator/templates")
-    env = Environment(loader=file_loader, trim_blocks=True)
+    env = Environment(loader=file_loader, trim_blocks=True, autoescape=True)
     template = env.get_template("interop.j2")
     rendered_template = template.render(yvars=cfg)
     if not rendered_template:
